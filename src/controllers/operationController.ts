@@ -59,7 +59,7 @@ export const insertAt = async (req: requestType, res: responseType) => {
     return;
   }
 
-  docInstance.content.push(newCharacter)
+  docInstance.content.push(newCharacter._id)
   await docInstance.save()
 
   let serializedTreeData = await client.get(docId)
@@ -198,7 +198,7 @@ export const removeCharacter = async(req: requestType, res: responseType) => {
     })
     return;
   }
-  docInstance.content = docInstance.content.filter(iterator => iterator.key === key)
+  docInstance.content = docInstance.content.filter((character: ICharacter): boolean => character.key === key)
   await docInstance.save()
 
   let serializedTreeData = await client.get(docId)
