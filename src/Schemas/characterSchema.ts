@@ -1,45 +1,63 @@
-import mongoose, {Document} from "mongoose";
+import mongoose, { Document, PopulatedDoc} from "mongoose";
+import { IUser } from "./userSchema";
 
-const { Schema } = mongoose;
+const { Schema, Types } = mongoose;
 
 export interface ICharacter extends Document {
   key: number[],
   siteId: number,
   digitList: number[],
-  letter: string
+  letter: string,
+  createdBy: PopulatedDoc<IUser>,
+  createdAt: string,
+  deletedBy: PopulatedDoc<IUser>,
+  deletedAt: string,
+  isPersisted: boolean
 }
 
 
 const characterSchema = new Schema<ICharacter>({
-  key: [
-    {
+  key: [{
       type: Number,
       required: true
-    }  
-  ],
+    }],
   siteId: {
-    type: Number,
-    default: null
+    type: Number
   },
   digitList:[
     {
-      type: Number,
-      default: null
+      type: Number
     }
   ],
   letter: {
     type: String,
     max: 1
+  },
+  createdBy:{
+    type: Types.ObjectId
+  },
+  createdAt: {
+    type: String
+  },
+  deletedBy: {
+    type: Types.ObjectId
+  },
+  deletedAt: {
+    type: String
+  },
+  isPersisted: {
+    type: Boolean
   }
 })
 
-// characterSchema.pre('save', function (next: (err?: Error) => void) {
-//   if(this.key){
-//     const [ siteId, digitList ] = this.key.split('.').map(Number);
-//     this.siteId = siteId;
-//     this.digitList = digitList;
-//   }
-//   next()
-// });
+characterSchema.post<ICharacter>('save', function() {
+  if(!this.isPersisted){
+    const date = new Date();
+    this.createdAt = date.toLocaleDateString() + '-' + date.toLocaleTimeString;
+    const [siteId, ...digitList] = this.key.slice(-1);
+    this.siteId = siteId
+    this.digitList = digitList
+  }
+})
 
 export const Character = mongoose.model<ICharacter>('Character', characterSchema)
