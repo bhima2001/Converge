@@ -1,5 +1,5 @@
-import mongoose, { Document, Schema } from "mongoose";
-import { IDocument, Documents } from "./documentSchema";
+import mongoose, { Document, Schema, PopulatedDoc } from "mongoose";
+import { IDocument } from "./documentSchema";
 import bcrypt from "bcrypt";
 
 const SALT_SIZE = 10;
@@ -8,8 +8,8 @@ export interface IUser extends Document {
   userName: string,
   email: string,
   password: string,
-  documentsCreated: IDocument[] | null,
-  documentsParticipantIn: IDocument[] | null,
+  documentsCreated: PopulatedDoc<IDocument>[],
+  documentsParticipantIn: PopulatedDoc<IDocument>[],
   comparePassword(providedPassword: string): Promise<boolean> 
 }
 
@@ -32,12 +32,12 @@ const userSchema = new mongoose.Schema<IUser>({
     length: [7, "Password must be at least"]
   },
   documentsCreated: [{
-      type: Documents.schema,
-      default: null
+    type: Schema.Types.ObjectId,
+    ref: 'Document'
   }],
   documentsParticipantIn: [{
-    type: Documents.schema,
-    default: null
+    type: Schema.Types.ObjectId,
+    ref: 'Document'
   }]
 })
 
