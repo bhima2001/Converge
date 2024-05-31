@@ -1,98 +1,98 @@
 import { TreeNode } from "./treeNode";
-import { IDocument } from '../Schemas/documentSchema';
-import { ICharacter } from '../Schemas/characterSchema';
-import { compareKeys } from '../helper/operationHelper';
+import { IDocument } from "../Schemas/documentSchema";
+import { ICharacter } from "../Schemas/characterSchema";
+import { compareKeys } from "../helper/operationHelper";
 
 export class RedBlackTree {
-  root: TreeNode | null = null
-  size: number = 0
+  root: TreeNode | null = null;
+  size: number = 0;
 
   public createRedBlackTree(document: IDocument): boolean {
-    const content: ICharacter[] = document.content
-    for( let i=0; i<content.length; i++){
-      this.insertElement(content[i].key, content[i].letter)
-      this.printTree()
-      console.log("")
-      console.log("")
-      console.log("")
+    const content: ICharacter[] = document.content;
+    for (let i = 0; i < content.length; i++) {
+      this.insertElement(content[i].key, content[i].letter);
+      this.printTree();
+      console.log("");
+      console.log("");
+      console.log("");
     }
-    return true
+    return true;
   }
 
-  public insertElement(key: number[], value: string): void{
-    const newNode = new TreeNode(key, value)
-    console.log(newNode)
-    if(this.root === null){
-      newNode.isBlack = true
-      this.root = newNode
-      this.size++
-      this.checkColorViolations(newNode)
+  public insertElement(key: number[], value: string): void {
+    const newNode = new TreeNode(key, value);
+    console.log(newNode);
+    if (this.root === null) {
+      newNode.isBlack = true;
+      this.root = newNode;
+      this.size++;
+      this.checkColorViolations(newNode);
       return;
     }
-    this.findAndInsert(this.root, newNode)
-    this.size++
-    console.log(newNode)
-    this.checkColorViolations(newNode)
+    this.findAndInsert(this.root, newNode);
+    this.size++;
+    console.log(newNode);
+    this.checkColorViolations(newNode);
     if (this.root !== null) {
       this.root.isBlack = true;
     }
-    return
+    return;
   }
 
   public getInOrderTraversal(currentNode: TreeNode | null): string[] {
-    const res: string[] = []
-    this.inOrderTraversal(currentNode, res)
+    const res: string[] = [];
+    this.inOrderTraversal(currentNode, res);
     return res;
   }
 
   public getPostOrderTraversal(currentNode: TreeNode | null): string[] {
-    const res: string[] = []
-    this.postOrderTraversal(currentNode, res)
+    const res: string[] = [];
+    this.postOrderTraversal(currentNode, res);
     return res;
   }
 
   public getPreOrderTraversal(currentNode: TreeNode | null): string[] {
-    const res: string[] = []
-    this.preOrderTraversal(currentNode, res)
+    const res: string[] = [];
+    this.preOrderTraversal(currentNode, res);
     return res;
   }
 
   public getLevelOrderTraversal(currentNode: TreeNode | null): string[] {
-    const res: string[] = []
-    if(!currentNode) return res;
-    const queue: TreeNode[] = []
-    queue.push(currentNode)
+    const res: string[] = [];
+    if (!currentNode) return res;
+    const queue: TreeNode[] = [];
+    queue.push(currentNode);
 
-    while(queue.length){
-      const temp: TreeNode = queue.shift()!
-      res.push(temp.value)
+    while (queue.length) {
+      const temp: TreeNode = queue.shift()!;
+      res.push(temp.value);
 
-      if(temp.left)queue.push(temp.left);
-      if(temp.right)queue.push(temp.right);
+      if (temp.left) queue.push(temp.left);
+      if (temp.right) queue.push(temp.right);
     }
     return res;
   }
 
   public checkColorViolations(node: TreeNode) {
-    if(node.parent === null)return;
+    if (node.parent === null) return;
 
-    if(node.isBlack === false && node.parent.isBlack === false){
+    if (node.isBlack === false && node.parent.isBlack === false) {
       this.resolveViolation(node);
     }
-    if(node.parent)this.checkColorViolations(node.parent)
+    if (node.parent) this.checkColorViolations(node.parent);
   }
 
   public heightOfTree(): number {
-    if (this.root === null)return 0;
-    return this.longestPath(this.root) - 1
+    if (this.root === null) return 0;
+    return this.longestPath(this.root) - 1;
   }
-  
-  public blackNodesValidation(): boolean {
-    if(this.root === null)return true;
-    const left: number = this.noOfBlackNodes(this.root.left)
-    const right: number = this.noOfBlackNodes(this.root.right)
 
-    return left === right
+  public blackNodesValidation(): boolean {
+    if (this.root === null) return true;
+    const left: number = this.noOfBlackNodes(this.root.left);
+    const right: number = this.noOfBlackNodes(this.root.right);
+
+    return left === right;
   }
 
   public printTree() {
@@ -100,44 +100,49 @@ export class RedBlackTree {
 
     const height = this.heightOfTree() + 1;
     const maxWidth = Math.pow(2, height);
-    const output = Array(height).fill(null).map(() => Array(maxWidth).fill(" "));
+    const output = Array(height)
+      .fill(null)
+      .map(() => Array(maxWidth).fill(" "));
 
     const fill = (node: TreeNode, level: number, pos: number) => {
-        if (node === null || pos < 0) return;
+      if (node === null || pos < 0) return;
 
-        output[level][pos] = node.value.concat(node.isBlack ? 'B' : 'R')
-        const gap = Math.pow(2, height - level - 2);
+      output[level][pos] = node.value.concat(node.isBlack ? "B" : "R");
+      const gap = Math.pow(2, height - level - 2);
 
-        if (node.left) {
-            fill(node.left, level + 1, pos - gap);
-        }
-        if (node.right) {
-            fill(node.right, level + 1, pos + gap);
-        }
+      if (node.left) {
+        fill(node.left, level + 1, pos - gap);
+      }
+      if (node.right) {
+        fill(node.right, level + 1, pos + gap);
+      }
     };
 
     fill(this.root, 0, Math.floor(maxWidth / 2));
-    output.forEach(line => console.log(line.join("")));
+    output.forEach((line) => console.log(line.join("")));
   }
 
   public serializeTree(): string {
-    return JSON.stringify(this.serializeNode(this.root))
+    return JSON.stringify(this.serializeNode(this.root));
   }
 
   public deSerializeTree(data: string | null) {
-    if(data){
-      this.root = this.deserializeNode(JSON.parse(data))
+    if (data) {
+      this.root = this.deserializeNode(JSON.parse(data));
     }
   }
 
-  private deserializeNode(data: TreeNode | null, parent: TreeNode | null = null): TreeNode | null {
+  private deserializeNode(
+    data: TreeNode | null,
+    parent: TreeNode | null = null
+  ): TreeNode | null {
     if (data === null) {
       return null;
     }
     this.size++;
     const node = new TreeNode(data.key, data.value);
-    node.isBlack = data.isBlack
-    node.isLeftChild = data.isLeftChild
+    node.isBlack = data.isBlack;
+    node.isLeftChild = data.isLeftChild;
     node.left = this.deserializeNode(data.left, node);
     node.right = this.deserializeNode(data.right, node);
     node.parent = parent;
@@ -145,177 +150,179 @@ export class RedBlackTree {
   }
 
   private longestPath(node: TreeNode | null): number {
-    if(node === null) return 0;
+    if (node === null) return 0;
 
-    let left: number  = 1 + this.longestPath(node.left);
+    let left: number = 1 + this.longestPath(node.left);
     let right: number = 1 + this.longestPath(node.right);
 
-    return Math.max(left, right)
+    return Math.max(left, right);
   }
 
-  private findAndInsert(currNode: TreeNode, newNode: TreeNode): void{
+  private findAndInsert(currNode: TreeNode, newNode: TreeNode): void {
     const comparatorValue = compareKeys(currNode.key, newNode.key);
 
-    if(comparatorValue >= 0) {
-      if(currNode.left == null) {
-        currNode.left = newNode
-        newNode.parent = currNode
-        newNode.isBlack = false
-        newNode.isLeftChild = true
+    if (comparatorValue >= 0) {
+      if (currNode.left == null) {
+        currNode.left = newNode;
+        newNode.parent = currNode;
+        newNode.isBlack = false;
+        newNode.isLeftChild = true;
         return;
       }
-      return this.findAndInsert(currNode.left, newNode)
+      return this.findAndInsert(currNode.left, newNode);
     }
-    if(currNode.right == null) {
-      currNode.right = newNode
-      newNode.parent = currNode
-      newNode.isBlack = false
-      newNode.isLeftChild = false
+    if (currNode.right == null) {
+      currNode.right = newNode;
+      newNode.parent = currNode;
+      newNode.isBlack = false;
+      newNode.isLeftChild = false;
       return;
     }
-    return this.findAndInsert(currNode.right, newNode)
+    return this.findAndInsert(currNode.right, newNode);
   }
 
   private preOrderTraversal(currentNode: TreeNode | null, res: string[]) {
-    if(currentNode == null)return;
+    if (currentNode == null) return;
 
-    res.push(currentNode.value)
+    res.push(currentNode.value);
     this.preOrderTraversal(currentNode.left, res);
     this.preOrderTraversal(currentNode.right, res);
   }
 
-  private inOrderTraversal(currentNode: TreeNode | null, res: string[]): void{
-    if(currentNode == null)return;
+  private inOrderTraversal(currentNode: TreeNode | null, res: string[]): void {
+    if (currentNode == null) return;
 
     this.inOrderTraversal(currentNode.left, res);
-    res.push(currentNode.value)
+    res.push(currentNode.value);
     this.inOrderTraversal(currentNode.right, res);
   }
 
   private postOrderTraversal(currentNode: TreeNode | null, res: string[]) {
-    if(currentNode == null)return;
+    if (currentNode == null) return;
 
     this.postOrderTraversal(currentNode.left, res);
     this.postOrderTraversal(currentNode.right, res);
-    res.push(currentNode.value)
+    res.push(currentNode.value);
   }
 
-
   private resolveViolation(node: TreeNode) {
-  
-    if(node.parent?.isLeftChild){
-      if(!node.parent.parent?.right || node.parent!.parent!.right.isBlack){
-        return this.rotation(node)
+    if (node.parent?.isLeftChild) {
+      if (!node.parent.parent?.right || node.parent!.parent!.right.isBlack) {
+        return this.rotation(node);
       }
-      if(node.parent.parent.right != null)node.parent.parent.right.isBlack = true
-      node.parent.parent.isBlack = false
-      node.parent.isBlack = true
+      if (node.parent.parent.right != null)
+        node.parent.parent.right.isBlack = true;
+      node.parent.parent.isBlack = false;
+      node.parent.isBlack = true;
       return;
     }
-    if(!node.parent?.parent?.left || node.parent?.parent?.left.isBlack){
-      return this.rotation(node)
+    if (!node.parent?.parent?.left || node.parent?.parent?.left.isBlack) {
+      return this.rotation(node);
     }
-    if(node.parent.parent.left != null)node.parent.parent.left.isBlack = true
-    node.parent.parent.isBlack = false
-    node.parent.isBlack = true
+    if (node.parent.parent.left != null) node.parent.parent.left.isBlack = true;
+    node.parent.parent.isBlack = false;
+    node.parent.isBlack = true;
     return;
   }
 
   private rotation(node: TreeNode) {
-    if(node.isLeftChild){
-      if(node.parent?.isLeftChild){
-        if(node.parent.parent)this.rightRotate(node.parent.parent)
-        node.parent.isBlack = true
-        node.isBlack = false
-        if(node.parent.right)node.parent.right.isBlack = false
+    if (node.isLeftChild) {
+      if (node.parent?.isLeftChild) {
+        if (node.parent.parent) this.rightRotate(node.parent.parent);
+        node.parent.isBlack = true;
+        node.isBlack = false;
+        if (node.parent.right) node.parent.right.isBlack = false;
         return;
       }
-      if(node.parent?.parent) this.rightLeftRotate(node.parent?.parent)
-      node.isBlack = true
-      if(node.left)node.left.isBlack = false
-      if(node.right)node.right.isBlack = false
+      if (node.parent?.parent) this.rightLeftRotate(node.parent?.parent);
+      node.isBlack = true;
+      if (node.left) node.left.isBlack = false;
+      if (node.right) node.right.isBlack = false;
       return;
     }
-    if(node.parent?.isLeftChild){
-      if(node.parent.parent) this.leftRightRotate(node.parent.parent)
-      node.isBlack = true
-      if(node.left)node.left.isBlack = false
-      if(node.right)node.right.isBlack = false
+    if (node.parent?.isLeftChild) {
+      if (node.parent.parent) this.leftRightRotate(node.parent.parent);
+      node.isBlack = true;
+      if (node.left) node.left.isBlack = false;
+      if (node.right) node.right.isBlack = false;
       return;
     }
-    if(node.parent?.parent)this.leftRotate(node.parent.parent)
-    node.isBlack = false
-    node.parent!.isBlack = true
-    if(node.parent?.left)node.parent.left.isBlack = false
+    if (node.parent?.parent) this.leftRotate(node.parent.parent);
+    node.isBlack = false;
+    node.parent!.isBlack = true;
+    if (node.parent?.left) node.parent.left.isBlack = false;
   }
 
   private rightRotate(node: TreeNode) {
-    const temp: TreeNode | null = node.left
-    node.left = temp!.right
-    if(node.left !== null){
-      node.left.isLeftChild = true
-      node.left.parent = node
+    const temp: TreeNode | null = node.left;
+    node.left = temp!.right;
+    if (node.left !== null) {
+      node.left.isLeftChild = true;
+      node.left.parent = node;
     }
-    if(node.parent === null){
-      this.root = temp
-      temp!.parent = null
-      temp!.isBlack = true
-    }else {
-      temp!.parent = node.parent
-      if(node.isLeftChild){
-        temp!.isLeftChild = true
-        temp!.parent.left = temp
-      }else {
-        temp!.isLeftChild = false
-        temp!.parent.right = temp
+    if (node.parent === null) {
+      this.root = temp;
+      temp!.parent = null;
+      temp!.isBlack = true;
+    } else {
+      temp!.parent = node.parent;
+      if (node.isLeftChild) {
+        temp!.isLeftChild = true;
+        temp!.parent.left = temp;
+      } else {
+        temp!.isLeftChild = false;
+        temp!.parent.right = temp;
       }
     }
-    temp!.right = node
-    node.isLeftChild = false
-    node.parent = temp
+    temp!.right = node;
+    node.isLeftChild = false;
+    node.parent = temp;
   }
 
   private leftRotate(node: TreeNode) {
-    const temp: TreeNode | null = node.right
-    node.right = temp!.left
-    if(node.right !== null) {
-      node.right.parent = node
-      node.right.isLeftChild = false
+    const temp: TreeNode | null = node.right;
+    node.right = temp!.left;
+    if (node.right !== null) {
+      node.right.parent = node;
+      node.right.isLeftChild = false;
     }
-    if(node.parent === null) {
-      this.root= temp
-      temp!.parent = null
-      temp!.isBlack = true
-    }else {
-      temp!.parent = node.parent
-      if(node.isLeftChild) {
-        temp!.isLeftChild = true
-        temp!.parent.left = temp
-      }else{
-        temp!.isLeftChild = false
-        temp!.parent.right = temp
+    if (node.parent === null) {
+      this.root = temp;
+      temp!.parent = null;
+      temp!.isBlack = true;
+    } else {
+      temp!.parent = node.parent;
+      if (node.isLeftChild) {
+        temp!.isLeftChild = true;
+        temp!.parent.left = temp;
+      } else {
+        temp!.isLeftChild = false;
+        temp!.parent.right = temp;
       }
     }
-    temp!.left = node
-    node.isLeftChild = true
-    node.parent = temp
+    temp!.left = node;
+    node.isLeftChild = true;
+    node.parent = temp;
   }
 
   private leftRightRotate(node: TreeNode) {
-    if(node.left) this.leftRotate(node.left)
-    this.rightRotate(node)
+    if (node.left) this.leftRotate(node.left);
+    this.rightRotate(node);
   }
 
   private rightLeftRotate(node: TreeNode) {
-    if(node.right) this.rightRotate(node.right)
-    this.leftRotate(node)
+    if (node.right) this.rightRotate(node.right);
+    this.leftRotate(node);
   }
 
   private noOfBlackNodes(node: TreeNode | null): number {
-    if(node === null)return 0;
+    if (node === null) return 0;
 
-    if(node.isBlack)return 1 + this.noOfBlackNodes(node.left) + this.noOfBlackNodes(node.right);
-    return this.noOfBlackNodes(node.left) + this.noOfBlackNodes(node.right)
+    if (node.isBlack)
+      return (
+        1 + this.noOfBlackNodes(node.left) + this.noOfBlackNodes(node.right)
+      );
+    return this.noOfBlackNodes(node.left) + this.noOfBlackNodes(node.right);
   }
 
   public deletedAt(key: number[]): void {
@@ -330,16 +337,16 @@ export class RedBlackTree {
   }
 
   private findNode(node: TreeNode, key: number[]): TreeNode | null {
-    const comparatorValue = compareKeys(node.key, key)
+    const comparatorValue = compareKeys(node.key, key);
 
-    if(comparatorValue == 0)return node;
+    if (comparatorValue == 0) return node;
 
-    if(comparatorValue > 0){
-      if(node.left)return this.findNode(node.left, key)
-      return null
+    if (comparatorValue > 0) {
+      if (node.left) return this.findNode(node.left, key);
+      return null;
     }
-    if(node.right)return this.findNode(node.right, key)
-    return null
+    if (node.right) return this.findNode(node.right, key);
+    return null;
   }
 
   private deleteRecursively(node: TreeNode): void {
@@ -389,10 +396,10 @@ export class RedBlackTree {
   }
 
   private getSuccessor(node: TreeNode): TreeNode {
-    while(node.left) {
+    while (node.left) {
       node = node.left;
     }
-    return node
+    return node;
   }
 
   private fixDeletion(node: TreeNode | null, parent: TreeNode | null): void {
@@ -406,7 +413,10 @@ export class RedBlackTree {
         this.leftRotate(parent);
         sibling = parent.right;
       }
-      if ((sibling!.left === null || sibling!.left.isBlack) && (sibling?.right === null || sibling!.right.isBlack)) {
+      if (
+        (sibling!.left === null || sibling!.left.isBlack) &&
+        (sibling?.right === null || sibling!.right.isBlack)
+      ) {
         if (sibling !== null) sibling.isBlack = false;
         this.fixDeletion(parent, parent.parent);
       } else {
@@ -430,7 +440,10 @@ export class RedBlackTree {
         this.rightRotate(parent!);
         sibling = parent!.left;
       }
-      if ((sibling?.right === null || sibling!.right.isBlack) && (sibling?.left === null || sibling!.left.isBlack)) {
+      if (
+        (sibling?.right === null || sibling!.right.isBlack) &&
+        (sibling?.left === null || sibling!.left.isBlack)
+      ) {
         if (sibling !== null) sibling!.isBlack = false;
         this.fixDeletion(parent, parent!.parent);
       } else {
@@ -451,16 +464,16 @@ export class RedBlackTree {
     if (node !== null) node.isBlack = true;
   }
 
-  private serializeNode(node: TreeNode | null): any{
-    if(node === null) return null;
+  private serializeNode(node: TreeNode | null): any {
+    if (node === null) return null;
     return {
-        key: node.key,
-        value: node.value,
-        left: this.serializeNode(node.left),
-        right: this.serializeNode(node.right),
-        isBlack: node.isBlack,
-        isLeftChild: node.isLeftChild,
-        parentKey: node.parent ? node.parent.key : null
-    }
+      key: node.key,
+      value: node.value,
+      left: this.serializeNode(node.left),
+      right: this.serializeNode(node.right),
+      isBlack: node.isBlack,
+      isLeftChild: node.isLeftChild,
+      parentKey: node.parent ? node.parent.key : null,
+    };
   }
 }

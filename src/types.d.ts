@@ -1,12 +1,16 @@
-import {Request as requestType, Response as responseType, NextFunction as nextFunctionType} from 'express';
-import 'express-session';
+import {
+  Request as requestType,
+  Response as responseType,
+  NextFunction as nextFunctionType,
+} from "express";
+import "express-session";
 
-declare module 'express-session' {
+declare module "express-session" {
   interface SessionData {
-    userName: string,
-    email: string,
-    isLoggedIn: boolean
+    userName: string;
+    email: string;
+    isLoggedIn: boolean;
   }
 }
 
-export {requestType, responseType, nextFunctionType};
+export { requestType, responseType, nextFunctionType };
