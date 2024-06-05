@@ -51,13 +51,15 @@ const characterSchema = new Schema<ICharacter>({
   },
 });
 
-characterSchema.post<ICharacter>("save", function () {
+characterSchema.pre<ICharacter>("save", async function () {
   if (!this.isPersisted) {
     const date = new Date();
-    this.createdAt = date.toLocaleDateString() + "-" + date.toLocaleTimeString;
+    this.createdAt =
+      date.toLocaleDateString() + "-" + date.toLocaleTimeString();
     const [siteId, ...digitList] = this.key.slice(-1);
     this.siteId = siteId;
     this.digitList = digitList;
+    this.isPersisted = true;
   }
 });
 
