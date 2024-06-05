@@ -14,7 +14,7 @@ const mongoURI = "mongodb://127.0.0.1:27017/CollaborateNow";
 app.use(cors());
 app.use(
   session({
-    secret: process.env.SECRET_KEY || "thisIsYourTemporaryPassword",
+    secret: process.env.SECRET_KEY ?? "thisIsYourTemporaryPassword",
     resave: false,
     saveUninitialized: false,
     cookie: {
