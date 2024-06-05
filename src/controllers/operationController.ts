@@ -4,6 +4,7 @@ import { Character, ICharacter } from "../Schemas/characterSchema";
 import { RedBlackTree } from "../models/redBlackTree";
 import { client } from "../redis-setup";
 import { generateKey } from "../helper/operationHelper";
+import { IUser, User } from "../Schemas/userSchema";
 
 export const index = (req: requestType, res: responseType) => {
   console.log("This is the index page of the application.");
@@ -11,7 +12,14 @@ export const index = (req: requestType, res: responseType) => {
 
 export const createDocument = async (req: requestType, res: responseType) => {
   try {
-    const newDocument = await Documents.create({});
+    const newDocument = await Documents.create({
+      createdBy: req.user._id,
+      public: req.body.public ?? true,
+    });
+    console.log(req.user);
+    newDocument.addAdmin(req.user);
+    newDocument.addUser(req.user);
+    await newDocument.save();
     res.send({
       state: 200,
       data: newDocument,
@@ -36,15 +44,9 @@ export const createRBTree = async (req: requestType, res: responseType) => {
   });
 };
 
-export const insertAt = async (req: requestType, res: responseType) => {
-  const { siteId, leftDigitList, rightDigitList, value } = req.query;
-  const { docId } = req.params;
-  if (
-    typeof siteId !== "string" ||
-    typeof leftDigitList !== "string" ||
-    typeof rightDigitList !== "string" ||
-    typeof value !== "string"
-  ) {
+export const generateNewKey = async (req: requestType, res: responseType) => {
+  const { leftDigitList, rightDigitList, siteId } = req.query;
+  if (typeof leftDigitList !== "string" || typeof rightDigitList !== "string") {
     res.status(400).send("Invalid query parameter");
     return;
   }
@@ -55,21 +57,31 @@ export const insertAt = async (req: requestType, res: responseType) => {
     parsedRightDigitList,
     Number(siteId)
   );
-  const docInstance: IDocument | null = await Documents.findOne({ _id: docId })
-    .populate("content")
-    .exec();
-  const newCharacter: ICharacter = await Character.create({
-    key: key,
-    letter: value,
-  });
 
-  if (!docInstance) {
-    res.send({
-      status: 404,
-      message: `Document not found with id = ${docId}`,
-    });
+  res.send({
+    status: 200,
+    data: key,
+  });
+};
+
+export const insertAt = async (req: requestType, res: responseType) => {
+  const { siteId, key, value } = req.query;
+  const { docId } = req.params;
+  if (
+    typeof siteId !== "string" ||
+    typeof value !== "string" ||
+    typeof key !== "string"
+  ) {
+    res.status(400).send("Invalid query parameter");
     return;
   }
+  const parsedKey: number[] = JSON.parse(key);
+  const docInstance: IDocument = req.document;
+  const newCharacter: ICharacter = await Character.create({
+    key: parsedKey,
+    letter: value,
+    created_by: req.user._id,
+  });
 
   docInstance.content.push(newCharacter._id);
   await docInstance.save();
@@ -78,7 +90,7 @@ export const insertAt = async (req: requestType, res: responseType) => {
   console.log("This is serialized Tree data: ", serializedTreeData);
   const rbTree = new RedBlackTree();
   rbTree.deSerializeTree(serializedTreeData);
-  rbTree.insertElement(key, value as string);
+  rbTree.insertElement(parsedKey, value);
 
   serializedTreeData = rbTree.serializeTree();
   await client.set(docId, serializedTreeData);
@@ -166,9 +178,7 @@ export const blackNodesValidation = async (
   res: responseType
 ) => {
   const { docId } = req.params;
-  const docInstance: IDocument | null = await Documents.findById(docId)
-    .populate("content")
-    .exec();
+  const docInstance: IDocument | null = req.document;
   if (!docInstance) {
     res.send({
       status: 404,
@@ -217,9 +227,7 @@ export const removeCharacter = async (req: requestType, res: responseType) => {
     });
     return;
   }
-  const docInstance: IDocument | null = await Documents.findById(docId)
-    .populate("content")
-    .exec();
+  const docInstance: IDocument | null = req.document;
   if (!docInstance) {
     res.send({
       status: 404,
@@ -248,3 +256,41 @@ export const removeCharacter = async (req: requestType, res: responseType) => {
     message: `Removed the character please check the console for the latest tree. Inorder after removal: ${inOrder}`,
   });
 };
+
+export const addUserToDoc = async (req: requestType, res: responseType) => {
+  const { userName } = req.body;
+  const { docId } = req.params;
+
+  const docInstance: IDocument | null = req.document;
+  if (!docInstance) {
+    res.send({
+      status: 404,
+      message: `Document with ID ${docId} not found.`,
+    });
+    return;
+  }
+
+  if (!docInstance.isAdmin) {
+    res.send({
+      status: 403,
+      message: `You are not allowed to add admins to this document.`,
+    });
+  }
+
+  const newUser: IUser | null = await User.findOne({ userName: userName });
+  if (!newUser) {
+    res.send({
+      status: 404,
+      message: `User with the name ${userName} is not present.`,
+    });
+    return;
+  }
+  docInstance.addUser(newUser);
+  await docInstance.save();
+  res.send({
+    status: 200,
+    data: `${userName} has been added successfully.`,
+  });
+};
+
+export const addAdminToDoc = async (req: requestType, res: responseType) => {};
