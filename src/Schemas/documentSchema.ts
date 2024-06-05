@@ -1,17 +1,16 @@
 import mongoose, { Document, Schema, Types, PopulatedDoc } from "mongoose";
 import { ICharacter } from "./characterSchema";
 import { IUser } from "./userSchema";
+import { generateRandomValue } from "../helper/operationHelper";
 
 export interface Participant extends Document {
-  userToSiteId: Map<Types.ObjectId, number>;
+  userId: PopulatedDoc<IUser>;
+  siteId: number;
 }
 
-const ParticipantSchema = new Schema({
-  userToSiteId: {
-    type: Map,
-    of: Number,
-    default: new Map(),
-  },
+const ParticipantSchema = new Schema<Participant>({
+  userId: Types.ObjectId,
+  siteId: Number,
 });
 
 export interface IDocument extends Document {
@@ -23,6 +22,11 @@ export interface IDocument extends Document {
   deletedAt: string;
   admins: PopulatedDoc<IUser>[];
   isPersisted: boolean;
+  public: boolean;
+  addAdmin(user: IUser): void;
+  addUser(user: IUser): void;
+  checkUserAccess(user: IUser): boolean;
+  isAdmin(user: IUser): boolean;
 }
 
 export const documentSchema = new Schema<IDocument>({
@@ -63,6 +67,10 @@ export const documentSchema = new Schema<IDocument>({
     type: Boolean,
     default: false,
   },
+  public: {
+    type: Boolean,
+    default: true,
+  },
 });
 
 documentSchema.post<IDocument>("save", function () {
@@ -75,13 +83,31 @@ documentSchema.post<IDocument>("save", function () {
 });
 
 documentSchema.methods.addUser = function (user: IUser) {
-  this.participants.set(user._id, this.participants.size + 1);
+  this.participants.push({
+    userId: user._id,
+    siteId: generateRandomValue(10000, 99999),
+  });
   user.documentsParticipantIn.push(this._id);
 };
 
 documentSchema.methods.addAdmin = function (user: IUser) {
   this.admins.push(user);
-  user.documentsParticipantIn.push(this._id);
+};
+
+documentSchema.methods.checkUserAccess = function (user: IUser) {
+  console.log(user);
+  const canAccess = this.participants.find(
+    (participant: Participant) =>
+      JSON.stringify(participant.userId) === JSON.stringify(user._id)
+  );
+  return !!canAccess;
+};
+
+documentSchema.methods.isAdmin = function (user: IUser) {
+  const canAccess = this.admins.find(
+    (admin: IUser) => JSON.stringify(admin._id) === JSON.stringify(user._id)
+  );
+  return !!canAccess;
 };
 
 export const Documents = mongoose.model<IDocument>("Document", documentSchema);
