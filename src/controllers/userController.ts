@@ -29,7 +29,7 @@ export const registerUser = async (req: requestType, res: responseType) => {
     req.session.isLoggedIn = true;
     res.send({
       status: 200,
-      data: `User has been created successfully. ${newUser}`,
+      data: `User has been created successfully. ${newUser._id}`,
     });
   } catch (err) {
     if (err instanceof mongoose.Error.ValidationError) {
@@ -51,12 +51,12 @@ export const login = async (req: requestType, res: responseType) => {
   if (!user) {
     res.send({
       status: 404,
-      message: `The ${
-        userName ? "username" : "email"
-      } and/or password you specified are not correct.`,
+      message: `The username
+       and/or password you specified are not correct.`,
     });
     return;
   }
+
   const passwordCheck: boolean = await user.comparePassword(password);
   if (!passwordCheck) {
     res.send({
@@ -84,7 +84,11 @@ export const logout = async (req: requestType, res: responseType) => {
         status: 500,
         message: "Logout failed.",
       });
+      return;
     }
+    req.session.userName = null;
+    req.session.isLoggedIn = false;
+    req.session.email = null;
     res.send({
       status: 200,
       message: "Logout successful.",
