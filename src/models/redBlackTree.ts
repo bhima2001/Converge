@@ -207,7 +207,7 @@ export class RedBlackTree {
 
   private resolveViolation(node: TreeNode) {
     if (node.parent?.isLeftChild) {
-      if (!node.parent.parent?.right || node.parent!.parent!.right.isBlack) {
+      if (!node.parent.parent?.right || node.parent.parent.right.isBlack) {
         return this.rotation(node);
       }
       if (node.parent.parent.right != null)
