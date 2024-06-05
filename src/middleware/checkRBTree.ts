@@ -11,14 +11,13 @@ export const checkRBTreeInCache = async (
   try {
     const { docId } = req.params;
     const isCachedInRedis = await client.get(docId);
+    console.log(typeof isCachedInRedis, isCachedInRedis === "null");
     console.log("This is docId:", docId);
-    if (!isCachedInRedis) {
-      const docInstance: IDocument | null = await Documents.findOne({
-        _id: docId,
-      })
-        .populate("content")
-        .exec();
-      if (!docInstance) {
+    if (isCachedInRedis === "null") {
+      const docInstance: IDocument | null = await Documents.findById(
+        docId
+      ).populate("content");
+      if (docInstance === null) {
         res.send({
           status: 404,
           message: `Document not found with id = ${docId}`,
